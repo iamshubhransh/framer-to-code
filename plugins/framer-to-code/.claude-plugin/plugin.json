@@ -1,0 +1,13 @@
+{
+  "name": "framer-to-code",
+  "description": "Convert a Framer-published website into a fully self-contained, pixel-perfect coded static site that depends on nothing from Framer's servers. Paste a Framer URL and it crawls, localizes, patches the runtime, and verifies the result.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Shubhransh Bhaskar",
+    "url": "https://github.com/iamshubhransh"
+  },
+  "homepage": "https://github.com/iamshubhransh/framer-to-code",
+  "repository": "https://github.com/iamshubhransh/framer-to-code",
+  "license": "MIT",
+  "keywords": ["framer", "static-site", "migration", "export", "website"]
+}

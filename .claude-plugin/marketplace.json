@@ -1,0 +1,15 @@
+{
+  "name": "framer-to-code",
+  "description": "Tools to migrate Framer-published websites into self-contained, pixel-perfect coded static sites.",
+  "owner": {
+    "name": "Shubhransh Bhaskar",
+    "url": "https://github.com/iamshubhransh"
+  },
+  "plugins": [
+    {
+      "name": "framer-to-code",
+      "source": "./plugins/framer-to-code",
+      "description": "Convert any Framer-published website into a pixel-perfect, self-contained coded static site by pasting its URL."
+    }
+  ]
+}
