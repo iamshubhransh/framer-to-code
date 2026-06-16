@@ -9,27 +9,31 @@ strips Framer analytics + the editor bar, and verifies the result has **zero
 external requests, zero 404s, and zero console errors**. The output deploys to any
 static host (Vercel, Netlify, GitHub Pages, Cloudflare Pages) with no build step.
 
-## Install (in Claude Code)
+## Install
+
+### One-line install (recommended)
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/iamshubhransh/framer-to-code/main/install.sh | bash
+```
+
+This installs the skill into `~/.claude/skills/`. Restart Claude Code, then in any
+project paste a Framer site URL and ask to convert it — the skill triggers
+automatically.
+
+> Like to read before you pipe to `bash`? [Review `install.sh`](./install.sh) first,
+> or clone the repo and run `./install.sh` locally.
+
+### Or install as a Claude Code plugin
 
 ```text
 /plugin marketplace add iamshubhransh/framer-to-code
 /plugin install framer-to-code@framer-to-code
 ```
 
-That's it. Then in any project, paste a Framer site URL and ask to convert it —
-the skill triggers automatically. Update later with `/plugin marketplace update framer-to-code`.
+Update later with `/plugin marketplace update framer-to-code`.
 
 **Prerequisites:** Node 18+. For the verification pass: `npm i -D playwright && npx playwright install chromium`.
-
-### Prefer not to use the marketplace?
-
-Clone it as a personal skill instead:
-
-```bash
-git clone https://github.com/iamshubhransh/framer-to-code.git
-mkdir -p ~/.claude/skills
-cp -r framer-to-code/plugins/framer-to-code/skills/framer-to-code ~/.claude/skills/
-```
 
 ## What it does
 
@@ -52,6 +56,7 @@ See the skill's `SKILL.md` for the full reference table.
 ## Repo layout
 
 ```
+install.sh                               # one-line installer (copies skill to ~/.claude/skills)
 .claude-plugin/marketplace.json          # marketplace catalog
 plugins/framer-to-code/
 ├── .claude-plugin/plugin.json           # plugin manifest
