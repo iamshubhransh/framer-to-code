@@ -1,0 +1,41 @@
+{
+  "name": "framer-to-code",
+  "version": "1.0.1",
+  "description": "Install the framer-to-code Claude Code skill — convert any Framer-published website into a self-contained, pixel-perfect coded static site.",
+  "type": "module",
+  "bin": {
+    "framer-to-code": "bin/install.mjs"
+  },
+  "files": [
+    "bin/install.mjs",
+    "plugins/framer-to-code/skills/framer-to-code",
+    ".claude-plugin/marketplace.json",
+    "install.sh"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "framer",
+    "claude-code",
+    "claude",
+    "skill",
+    "static-site",
+    "migration",
+    "export",
+    "website"
+  ],
+  "author": {
+    "name": "Shubhransh Bhaskar",
+    "url": "https://github.com/iamshubhransh"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/iamshubhransh/framer-to-code#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamshubhransh/framer-to-code.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iamshubhransh/framer-to-code/issues"
+  }
+}

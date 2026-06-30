@@ -11,15 +11,21 @@ static host (Vercel, Netlify, GitHub Pages, Cloudflare Pages) with no build step
 
 ## Install
 
-### One-line install (recommended)
+### npx (recommended)
+
+```bash
+npx framer-to-code
+```
+
+Installs the skill into `~/.claude/skills/`. Restart Claude Code, then in any
+project paste a Framer site URL and ask to convert it — the skill triggers
+automatically. Re-run any time to update to the latest version. Requires Node 18+.
+
+### One-line install (no Node required)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/iamshubhransh/framer-to-code/main/install.sh | bash
 ```
-
-This installs the skill into `~/.claude/skills/`. Restart Claude Code, then in any
-project paste a Framer site URL and ask to convert it — the skill triggers
-automatically.
 
 > Like to read before you pipe to `bash`? [Review `install.sh`](./install.sh) first,
 > or clone the repo and run `./install.sh` locally.
@@ -56,7 +62,9 @@ See the skill's `SKILL.md` for the full reference table.
 ## Repo layout
 
 ```
-install.sh                               # one-line installer (copies skill to ~/.claude/skills)
+package.json                             # npm package — `npx framer-to-code` installer
+bin/install.mjs                          # npx entry point (copies skill to ~/.claude/skills)
+install.sh                               # curl|bash installer (no Node required)
 .claude-plugin/marketplace.json          # marketplace catalog
 plugins/framer-to-code/
 ├── .claude-plugin/plugin.json           # plugin manifest

@@ -95,6 +95,10 @@ function cleanHtml(t) {
   t = localize(t);
   t = t.replace(/<script\b[^>]*>(?:(?!<\/script>)[\s\S])*?(?:clarity|__framer_force_showing_editorbar|events\.framer\.com)(?:(?!<\/script>)[\s\S])*?<\/script>/gi, '');
   t = t.replace(/<script\b[^>]*events\.framer\.com[^>]*>(?:[\s\S]*?<\/script>)?/gi, '');
+  // Google Analytics / Tag Manager (added via Framer custom-code): kill the external
+  // gtag/js loader (host in src=) and the inline gtag()/dataLayer config block.
+  t = t.replace(/<script\b[^>]*\b(?:www\.)?(?:googletagmanager\.com|google-analytics\.com)[^>]*>(?:[\s\S]*?<\/script>)?/gi, '');
+  t = t.replace(/<script\b[^>]*>(?:(?!<\/script>)[\s\S])*?(?:gtag\s*\(|googletagmanager\.com|google-analytics\.com)(?:(?!<\/script>)[\s\S])*?<\/script>/gi, '');
   t = t.replace(/<link\b[^>]*(?:fonts\.googleapis\.com|fonts\.gstatic\.com)[^>]*>/gi, '');
   t = t.replace(new RegExp(`(<a\\b[^>]*\\bhref=")https?:\\/\\/${esc(HOST)}(\\/[^"]*)"`, 'g'), (_m, a, b) => `${a}.${b}"`);
   t = t.replace(/(<meta\b[^>]*\b(?:property|name)="(?:og:image|twitter:image)"[^>]*\bcontent=")(\/[^"]*)"/gi, (_m, a, b) => `${a}${ORIGIN}${b}"`);
@@ -105,9 +109,32 @@ function cleanHtml(t) {
 for (const p of pageList) {
   const out = cleanHtml(fs.readFileSync(path.join(WORK, 'pages', p.slug + '.html'), 'utf8'));
   fs.writeFileSync(path.join(OUT, p.slug + '.html'), out);
-  const leak = (out.match(/https?:\/\/(?:framerusercontent\.com|fonts\.g(?:static|oogleapis)\.com|events\.framer\.com|i\.ytimg\.com|unpkg\.com|app\.framerstatic\.com|clarity\.ms)/g) || []).length;
+  const leak = (out.match(/https?:\/\/(?:framerusercontent\.com|fonts\.g(?:static|oogleapis)\.com|events\.framer\.com|i\.ytimg\.com|unpkg\.com|app\.framerstatic\.com|clarity\.ms|(?:www\.)?googletagmanager\.com|(?:www\.)?google-analytics\.com)/g) || []).length;
   console.log(`  page ${p.slug.padEnd(20)} leak-refs=${leak}`);
 }
+
+// ---- 5b) Framer CMS data chunks (.framercms): built at runtime via
+//          new URL("./x.framercms", <module-url>), so the crawler never saw them as
+//          literal urls and they were never downloaded. Discover them from the fresh
+//          bundles, resolve against the ORIGINAL module url, and save into the localized
+//          module dir so the (base-fixed) runtime fetch in step 6 resolves locally.
+const FRAMERCMS = /new URL\(\s*[`'"](\.\/[^`'"]+\.framercms)[`'"]\s*,\s*[`'"](https?:\/\/[^`'"]+)[`'"]\s*\)/g;
+const cmsChunks = new Map();  // absolute chunk url -> local rel path
+for (const f of fs.readdirSync(path.join(OUT, 'assets/framer'))) {
+  if (!f.endsWith('.mjs')) continue;
+  const orig = fs.readFileSync(path.join(OUT, 'assets/framer', f), 'utf8');
+  for (const m of orig.matchAll(FRAMERCMS)) {
+    let chunkUrl; try { chunkUrl = new URL(m[1], m[2]).href; } catch { continue; }
+    const localBase = localize(m[2]);  // e.g. /media/pFSbZ7LtQ.js
+    const dir = localBase.startsWith('/') ? localBase.slice(0, localBase.lastIndexOf('/')) : '/media';
+    cmsChunks.set(chunkUrl, (dir + '/' + basename(chunkUrl)).replace(/^\//, ''));
+  }
+}
+for (const [u, rel] of cmsChunks) {
+  const out = path.join(OUT, rel); fs.mkdirSync(path.dirname(out), { recursive: true });
+  try { fs.writeFileSync(out, await fetchBuf(u)); } catch (e) { console.warn('framercms fail', u, e.message); }
+}
+if (cmsChunks.size) console.log('framercms chunks:', cmsChunks.size);
 
 // ---- 6) patch the JS bundles: repoint every runtime-built remote URL to local ----
 for (const f of fs.readdirSync(path.join(OUT, 'assets/framer'))) {
@@ -127,6 +154,11 @@ for (const f of fs.readdirSync(path.join(OUT, 'assets/framer'))) {
   // (no base). Give single-arg new URL() calls on a root path the document base so they
   // resolve to the current origin (also makes the asset load locally).
   t = t.replace(/new URL\((["'])(\/[^"'`]*)\1\)/g, 'new URL($1$2$1,document.baseURI)');
+  // Two-arg new URL("./x", "/root-relative-base"): a root-relative base is an ILLEGAL
+  // URL base and throws "Invalid base URL" — which crashes Framer's hydration and blanks
+  // the page (white screen) a moment after first paint. Resolve the base against the
+  // document base so it becomes a valid absolute url (and points at the local asset).
+  t = t.replace(/new URL\(\s*([`'"][^`'"]*[`'"])\s*,\s*([`'"])(\/[^`'"]*)\2\s*\)/g, 'new URL($1,new URL($2$3$2,document.baseURI))');
   fs.writeFileSync(fp, t);
 }
 
