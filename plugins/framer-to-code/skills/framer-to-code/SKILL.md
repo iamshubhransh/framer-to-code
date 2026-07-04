@@ -31,6 +31,9 @@ zero 404s, and visual parity.
 - **Don't use** for a from-scratch redesign, or when the user wants clean
   hand-written React/HTML they'll heavily edit — say so and offer a rebuild instead.
   (This mirror is faithful but the markup is Framer-generated and verbose.)
+- **Want the Framer runtime removed entirely** (no React, no hydration, zero Framer
+  `.mjs` shipped, interactions rebuilt as tiny vanilla JS)? Use the sibling
+  `framer-to-code-hard` skill instead.
 
 ## Inputs
 
