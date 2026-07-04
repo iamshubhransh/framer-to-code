@@ -9,7 +9,7 @@
     {
       "name": "framer-to-code",
       "source": "./plugins/framer-to-code",
-      "description": "Convert any Framer-published website into a pixel-perfect, self-contained coded static site by pasting its URL."
+      "description": "Convert any Framer-published website into a self-contained coded static site by pasting its URL. Two skills: a pixel-perfect mirror (keeps the localized Framer runtime), and a hard mode that removes the Framer runtime entirely (no React, pure HTML/CSS + tiny vanilla JS)."
     }
   ]
 }

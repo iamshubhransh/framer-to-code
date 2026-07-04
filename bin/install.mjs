@@ -2,11 +2,13 @@
 //
 // framer-to-code installer (npx entry point)
 //
-//   npx framer-to-code
+//   npx framer-to-code                       # installs both skills
+//   npx framer-to-code --only framer-to-code-hard
 //
-// Copies the bundled `framer-to-code` skill into ~/.claude/skills so Claude
-// Code picks it up automatically. The skill ships inside this package, so the
-// install works offline and is pinned to whatever version you ran via npx.
+// Copies the bundled skills (`framer-to-code` — pixel-perfect mirror, and
+// `framer-to-code-hard` — Framer runtime removed entirely) into ~/.claude/skills
+// so Claude Code picks them up automatically. The skills ship inside this
+// package, so the install works offline and is pinned to the npx version.
 //
 import fs from 'node:fs';
 import os from 'node:os';
@@ -30,15 +32,18 @@ if (has('-h', '--help')) {
     [
       `framer-to-code v${PKG.version}`,
       '',
-      'Install the framer-to-code Claude Code skill into ~/.claude/skills.',
+      'Install the framer-to-code Claude Code skills into ~/.claude/skills:',
+      '  framer-to-code       pixel-perfect mirror (keeps the localized Framer runtime)',
+      '  framer-to-code-hard  runtime removed entirely (no React, vanilla-JS repairs)',
       '',
       'Usage:',
       '  npx framer-to-code [options]',
       '',
       'Options:',
-      '  -h, --help       Show this help',
-      '  -v, --version    Print the version',
-      '      --dir <path> Install into <path>/framer-to-code instead of ~/.claude/skills',
+      '  -h, --help        Show this help',
+      '  -v, --version     Print the version',
+      '      --dir <path>  Install into <path>/ instead of ~/.claude/skills',
+      '      --only <name> Install a single skill (framer-to-code | framer-to-code-hard)',
       '',
       'Environment:',
       '  CLAUDE_SKILLS_DIR  Override the skills directory (default ~/.claude/skills)',
@@ -69,11 +74,12 @@ if (nodeMajor < 18) {
   ok(`Node ${process.version} detected.`);
 }
 
-// ---- locate the bundled skill ---------------------------------------------
-const SOURCE = path.join(PKG_ROOT, 'plugins', 'framer-to-code', 'skills', 'framer-to-code');
-if (!fs.existsSync(path.join(SOURCE, 'SKILL.md'))) {
-  die(`Could not find the bundled skill at ${SOURCE}. This looks like a broken package — please report it.`);
-}
+// ---- which skills ----------------------------------------------------------
+const ALL_SKILLS = ['framer-to-code', 'framer-to-code-hard'];
+const onlyIdx = argv.findIndex((a) => a === '--only');
+const only = onlyIdx !== -1 ? argv[onlyIdx + 1] : null;
+if (only && !ALL_SKILLS.includes(only)) die(`Unknown skill "${only}". Available: ${ALL_SKILLS.join(', ')}`);
+const SKILLS = only ? [only] : ALL_SKILLS;
 
 // ---- resolve destination ---------------------------------------------------
 const dirFlagIdx = argv.findIndex((a) => a === '--dir');
@@ -84,25 +90,30 @@ const baseDir =
       ? path.resolve(process.env.CLAUDE_SKILLS_DIR)
       : path.join(os.homedir(), '.claude', 'skills');
 
-const DEST = path.join(baseDir, 'framer-to-code');
-
 // ---- install ---------------------------------------------------------------
-try {
-  if (fs.existsSync(DEST)) {
-    warn(`Existing install at ${dim(DEST)} — replacing it.`);
-    fs.rmSync(DEST, { recursive: true, force: true });
+for (const skill of SKILLS) {
+  const SOURCE = path.join(PKG_ROOT, 'plugins', 'framer-to-code', 'skills', skill);
+  if (!fs.existsSync(path.join(SOURCE, 'SKILL.md'))) {
+    die(`Could not find the bundled skill at ${SOURCE}. This looks like a broken package — please report it.`);
   }
-  fs.mkdirSync(path.dirname(DEST), { recursive: true });
-  fs.cpSync(SOURCE, DEST, { recursive: true });
-} catch (err) {
-  die(`Install failed: ${err.message}`);
+  const DEST = path.join(baseDir, skill);
+  try {
+    if (fs.existsSync(DEST)) {
+      warn(`Existing install at ${dim(DEST)} — replacing it.`);
+      fs.rmSync(DEST, { recursive: true, force: true });
+    }
+    fs.mkdirSync(path.dirname(DEST), { recursive: true });
+    fs.cpSync(SOURCE, DEST, { recursive: true });
+  } catch (err) {
+    die(`Install failed: ${err.message}`);
+  }
+  ok(`Installed ${bold(skill)} v${PKG.version} to ${dim(DEST)}`);
 }
-
-ok(`Installed ${bold('framer-to-code')} v${PKG.version} to ${dim(DEST)}`);
 console.log();
 info('Next steps');
-console.log('  1. Restart Claude Code (or start a new session) so it loads the skill.');
-console.log('  2. In any project, paste a Framer site URL and ask to convert it.');
-console.log(`  3. ${dim('For the verification pass:')} npm i -D playwright && npx playwright install chromium`);
+console.log('  1. Restart Claude Code (or start a new session) so it loads the skills.');
+console.log('  2. In any project, paste a Framer site URL and ask to convert it —');
+console.log(`     ${dim('say "strip the Framer runtime" to get the hard (runtime-free) variant.')}`);
+console.log(`  3. ${dim('For verification (required in hard mode):')} npm i -D playwright && npx playwright install chromium`);
 console.log();
 console.log(dim('Prefer the marketplace? /plugin marketplace add iamshubhransh/framer-to-code'));

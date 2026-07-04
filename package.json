@@ -1,7 +1,7 @@
 {
   "name": "framer-to-code",
-  "version": "1.0.1",
-  "description": "Install the framer-to-code Claude Code skill — convert any Framer-published website into a self-contained, pixel-perfect coded static site.",
+  "version": "1.1.0",
+  "description": "Install the framer-to-code Claude Code skills — convert any Framer-published website into a self-contained coded static site: pixel-perfect mirror, or hard mode with the Framer runtime removed entirely.",
   "type": "module",
   "bin": {
     "framer-to-code": "bin/install.mjs"
@@ -9,6 +9,7 @@
   "files": [
     "bin/install.mjs",
     "plugins/framer-to-code/skills/framer-to-code",
+    "plugins/framer-to-code/skills/framer-to-code-hard",
     ".claude-plugin/marketplace.json",
     "install.sh"
   ],
